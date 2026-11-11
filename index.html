@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мои расходы</title>
+<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/houschka-rounded">
+<style>
+  :root {
+    --ink: #163024;
+    --muted: #5d7468;
+    --deep: #0c4634;
+    --mid: #1f7a52;
+    --lime: #b6e34a;
+    --lime-2: #8ed63a;
+    --mint: #e7f6ee;
+    --paper: #f6fbf8;
+    --card: #ffffff;
+    --line: rgba(18, 72, 48, .12);
+    --danger: #c4523a;
+    --warn: #c9841a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    font: 300 16px/1.45 "Houschka Rounded", "Segoe UI", sans-serif;
+    background:
+      radial-gradient(820px 380px at 100% -8%, #d7f3df, transparent 58%),
+      linear-gradient(165deg, #f4fbf7 0%, #e7f5ee 46%, #d5eee4 100%);
+    min-height: 100vh;
+  }
+  b, strong, h1, h2, h3, th, button, .num, .tab, label { font-weight: 600; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 16px 72px; }
+  header.hero {
+    display: block;
+    background: linear-gradient(105deg, #03261e 0%, #064433 22%, #0b6848 48%, #128a5c 74%, #8fce6a 100%);
+    color: #f4fff8;
+    border-radius: 28px;
+    padding: 28px 28px 24px;
+    box-shadow: 0 22px 48px rgba(3, 38, 30, .28);
+    position: relative;
+    overflow: hidden;
+  }
+  header.hero::before, header.hero::after { content: none; }
+  .brand { position: relative; z-index: 1; letter-spacing: .04em; text-transform: uppercase; font-size: 13px; color: rgba(244,255,248,.8); }
+  h1 { margin: 14px 0 6px; font-size: 34px; letter-spacing: -.02em; position: relative; z-index: 1; }
+  h1 span { color: var(--lime); }
+  .lead { margin: 0; max-width: 460px; color: rgba(244,255,248,.86); position: relative; z-index: 1; }
+  .month-box { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; margin-top: 18px; }
+  .month-box label { font-size: 15px; color: #f4fff8; margin: 0; }
+  input[type="month"], input, select {
+    font: 300 16px/1.2 "Houschka Rounded", "Segoe UI", sans-serif;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px 14px;
+    width: 100%;
+  }
+  input[type="month"] { width: 11.5rem; min-width: 0; padding-right: 6px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+  .kpi {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 16px 16px 14px;
+    border: 1px solid var(--line);
+    box-shadow: 0 8px 24px rgba(18, 72, 48, .06);
+  }
+  .kpi .lbl { color: var(--muted); font-size: 13px; }
+  .kpi .num { font-size: 26px; margin-top: 4px; letter-spacing: -.02em; }
+  .kpi.accent { background: linear-gradient(155deg, #064134, #0b6a50 70%, #157058); color: #f4fff8; }
+  .kpi.accent .lbl { color: rgba(244,255,248,.75); }
+  #breakdown { margin: 0 0 14px; }
+  #breakdown summary { cursor: pointer; font-weight: 600; }
+  #breakdown .item { grid-template-columns: 1fr auto; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 14px; }
+  .tab {
+    border: 0; cursor: pointer;
+    background: #fff;
+    color: var(--deep);
+    border-radius: 999px;
+    padding: 10px 16px;
+    border: 1px solid var(--line);
+  }
+  .tab.on { background: linear-gradient(180deg, #c6ef73, #8ed63a); border-color: transparent; }
+  .panel { display: none; }
+  .panel.on { display: block; }
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 14px; }
+  .card {
+    background: var(--card);
+    border-radius: 22px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    box-shadow: 0 10px 28px rgba(18, 72, 48, .06);
+  }
+  h2 { margin: 0 0 12px; font-size: 20px; }
+  h3 { margin: 16px 0 6px; font-size: 16px; }
+  .wish { margin: 0; padding-left: 18px; }
+  .wish li { margin: 4px 0; }
+  form .row { display: grid; gap: 8px; margin-bottom: 10px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  button.primary {
+    border: 0; cursor: pointer; width: 100%;
+    color: #103024;
+    background: linear-gradient(180deg, #d7f48a, #7ec84a);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font: 600 16px "Houschka Rounded", sans-serif;
+  }
+  button.ghost, button.danger {
+    border: 0; cursor: pointer; background: transparent;
+    color: var(--muted); font: 600 14px "Houschka Rounded", sans-serif;
+  }
+  button.danger { color: var(--danger); }
+  .item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .item:last-child { border-bottom: 0; }
+  .item .name { font-weight: 600; }
+  .meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .pill {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--mint);
+    color: var(--deep);
+  }
+  .pill.warn { background: #fff3d6; color: #8a5a08; }
+  .pill.bad { background: #ffe4dc; color: #9a3418; }
+  .bars { display: grid; gap: 10px; margin-top: 8px; }
+  .bar-row { display: grid; grid-template-columns: 110px 1fr auto; gap: 8px; align-items: center; font-size: 14px; }
+  .track { height: 10px; background: #e7f3ec; border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; background: linear-gradient(90deg, #064134, #7ec84a); border-radius: 99px; }
+  .mic { margin-top: 8px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; width: 100%; cursor: pointer; color: var(--deep); font: 600 15px "Houschka Rounded", sans-serif; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+  .tools button, .tools label.file {
+    background: #fff; border: 1px solid var(--line); border-radius: 12px;
+    padding: 8px 12px; cursor: pointer; color: var(--deep); font-weight: 600;
+  }
+  .empty { color: var(--muted); padding: 8px 0 4px; }
+  .photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 8px; }
+  .photos img { width: 100%; height: 140px; object-fit: cover; border-radius: 14px; background: var(--mint); }
+  textarea { min-height: 90px; resize: vertical; font: 300 16px/1.4 "Houschka Rounded", "Segoe UI", sans-serif; }
+  .photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 8px; }
+  .photos img { width: 100%; height: 140px; object-fit: cover; border-radius: 14px; background: var(--mint); }
+  textarea { min-height: 90px; resize: vertical; font: 300 16px/1.4 "Houschka Rounded", "Segoe UI", sans-serif; }
+  @media (max-width: 860px) {
+    header.hero, .kpis, .grid { grid-template-columns: 1fr; }
+    .month-box { justify-self: start; }
+    h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="brand">Личный бюджет</div>
+      <h1>Подписки, квартплата<br>и <span>расходы</span></h1>
+      <p class="lead">Отмечаем, что оплачено, когда кончается подписка и куда уходят деньги.</p>
+    </div>
+    <div class="month-box">
+      <label for="month">Месяц</label>
+      <input id="month" type="month">
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+  <details class="card" id="breakdown">
+    <summary>Из чего складывается итог</summary>
+    <div id="break-body"></div>
+  </details>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="subs">Подписки</button>
+    <button class="tab" data-tab="rent">Квартплата</button>
+    <button class="tab" data-tab="spend">Расходы</button>
+    <button class="tab" data-tab="notes">Заметки и фото</button>
+    <button class="tab" data-tab="plans">Накопления и долг</button>
+  </div>
+
+  <section class="panel on" id="subs">
+    <div class="grid">
+      <form class="card" id="sub-form">
+        <h2>Новая подписка</h2>
+        <div class="row"><input name="name" required placeholder="Название, например Яндекс Плюс"></div>
+        <div class="two">
+          <input name="cost" required type="number" min="0" step="0.01" placeholder="Стоимость, ₽">
+          <select name="period">
+            <option value="month">в месяц</option>
+            <option value="year">в год</option>
+          </select>
+        </div>
+        <div class="two">
+          <label class="meta">Куплена<input name="paid" required type="date"></label>
+          <label class="meta">Действует до<input name="renew" required type="date"></label>
+        </div>
+        <button class="primary" type="submit">Добавить</button>
+      </form>
+      <div class="card" id="sub-list"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="rent">
+    <div class="grid">
+      <form class="card" id="rent-form">
+        <h2>Квартплата за месяц</h2>
+        <div class="row"><input name="amount" required type="number" min="0" step="0.01" placeholder="Сумма, ₽"></div>
+        <div class="row"><input name="note" placeholder="Комментарий, например ЖКХ + интернет"></div>
+        <button class="primary" type="submit">Сохранить за выбранный месяц</button>
+      </form>
+      <div class="card" id="rent-list"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="spend">
+    <div class="grid">
+      <form class="card" id="exp-form">
+        <h2>Новый расход</h2>
+        <div class="row">
+          <select name="category" id="cat"></select>
+        </div>
+        <div class="two">
+          <input name="amount" required type="number" min="0" step="0.01" placeholder="Сумма, ₽">
+          <input name="date" required type="date">
+        </div>
+        <div class="row"><input name="note" placeholder="Что купили"></div>
+        <button class="primary" type="submit">Записать</button>
+      </form>
+      <div>
+        <div class="card" id="bars"></div>
+        <div class="card" id="exp-list" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="notes">
+    <div class="grid">
+      <form class="card" id="note-form">
+        <h2>Заметка с телефона</h2>
+        <div class="row"><textarea name="text" required placeholder="Что купили или что записать"></textarea></div>
+        <button class="mic" type="button" id="mic">Надиктовать</button>
+        <div class="row"><select name="category" id="note-cat"></select></div>
+        <div class="row"><input name="date" required type="date"></div>
+        <div class="row"><input name="photos" type="file" accept="image/*" multiple></div>
+        <button class="primary" type="submit">Сохранить</button>
+      </form>
+      <div class="card" id="note-list"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="plans">
+    <div class="grid">
+      <div class="card">
+        <h2>На что копим</h2>
+        <p class="meta">Ежемесячный профицит откладывается на эти покупки.</p>
+        <h3>Одежда</h3>
+        <ul class="wish"><li>Зимние сапоги</li><li>Пальто</li><li>Комплект красивого белья</li></ul>
+        <h3>Техника</h3>
+        <ul class="wish"><li>iPhone 18 Pro Max</li><li>Стилус для iPad</li><li>Погружной блендер Smeg, розовый</li></ul>
+        <h3>Кухня</h3>
+        <ul class="wish"><li>Разделочная доска</li><li>Чайник Smeg, розовый</li><li>Сковорода для блинов</li></ul>
+        <h3>Прихожая</h3>
+        <ul class="wish"><li>Пуф, розовый, один или два</li></ul>
+        <h3>Уход</h3>
+        <ul class="wish"><li>Тонирующее средство для волос</li><li>Хайлайтер Victoria Bonya</li><li>Средства для ламинирования бровей и ресниц</li><li>Средства для маникюра, включая лаки</li></ul>
+        <h3>Работа</h3>
+        <ul class="wish"><li>Новый компьютер</li><li>Офисное кресло</li><li>Мышь</li><li>Клавиатура</li></ul>
+      </div>
+      <div>
+        <form class="card" id="debt-form">
+          <h2>Долг маме за ремонт</h2>
+          <p class="meta">Квартира. Сумму долга запишем, когда вы её назовёте. Каждый перевод — дата и сумма.</p>
+          <div class="two">
+            <input name="date" required type="date">
+            <input name="amount" required type="number" min="0" step="0.01" placeholder="Сумма, ₽">
+          </div>
+          <button class="primary" type="submit">Записать перевод</button>
+        </form>
+        <div class="card" id="debt-list" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="tools">
+    <button type="button" id="export">Скачать данные</button>
+    <label class="file">Загрузить данные<input id="import" type="file" accept="application/json" hidden></label>
+  </div>
+</div>
+<script>
+const KEY = "budget-esg-v1";
+const photoUrls = new Map();
+function dbOpen() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open("budget-esg-photos", 1);
+    req.onupgradeneeded = () => req.result.createObjectStore("photos");
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function putPhoto(id, blob) {
+  const dbp = await dbOpen();
+  await new Promise((resolve, reject) => {
+    const tx = dbp.transaction("photos", "readwrite");
+    tx.objectStore("photos").put(blob, id);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function getPhoto(id) {
+  const dbp = await dbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = dbp.transaction("photos", "readonly");
+    const req = tx.objectStore("photos").get(id);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dropPhoto(id) {
+  const dbp = await dbOpen();
+  await new Promise((resolve, reject) => {
+    const tx = dbp.transaction("photos", "readwrite");
+    tx.objectStore("photos").delete(id);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+  const url = photoUrls.get(id);
+  if (url) { URL.revokeObjectURL(url); photoUrls.delete(id); }
+}
+const CATS = ["Продукты", "Косметика", "Ростелеком", "Рассрочка", "Лотерея", "Кафе", "Транспорт", "Здоровье", "Дом", "Одежда", "Связь", "Другое"];
+function guessCat(text) {
+  const t = text.toLowerCase();
+  const rules = [
+    [/космет|крем|помад|тушь|шампун|маск/, "Косметика"],
+    [/ростелеком|интернет|wifi|вай-фай|вайфай/, "Ростелеком"],
+    [/продукт|пятер|магнит|лента|перекрест|ашан|молоко|хлеб|овощ/, "Продукты"],
+    [/кафе|кофе|ресторан/, "Кафе"],
+    [/такси|метро|бензин|транспорт/, "Транспорт"],
+    [/аптек|врач|анализ/, "Здоровье"],
+    [/одежд|обув/, "Одежда"],
+    [/телефон|связь|мтс|билайн|мегафон/, "Связь"],
+    [/лотере|жилищн/, "Лотерея"]
+  ];
+  for (const [re, name] of rules) if (re.test(t)) return name;
+  return "Другое";
+}
+const rub = n => new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(n || 0);
+const uid = () => Math.random().toString(36).slice(2, 9);
+const today = () => new Date().toISOString().slice(0, 10);
+const monthNow = () => today().slice(0, 7);
+
+let db = load();
+const monthEl = document.getElementById("month");
+monthEl.value = monthNow();
+
+function load() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY));
+    if (raw && raw.subs) return raw;
+  } catch (e) {}
+  return { subs: [], rent: [], expenses: [], notes: [] };
+}
+if (!db.notes) db.notes = [];
+if (!db.payments) db.payments = [];
+const mag = db.subs.find(s => s.id === "magnific");
+if (!mag) db.subs.push({ id: "magnific", name: "Magnific Premium+", cost: 4732, period: "month", renew: "2026-11-15", paid: "2026-10-15", hold: true });
+else { mag.cost = 4732; mag.renew = "2026-11-15"; mag.paid = "2026-10-15"; mag.hold = true; }
+function nextCharge(day) {
+  const now = new Date();
+  let month = now.getMonth();
+  if (now.getDate() > day) month += 1;
+  const dt = new Date(now.getFullYear(), month, day);
+  return dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+}
+const ivi = db.subs.find(s => s.id === "ivi");
+if (!ivi) db.subs.push({ id: "ivi", name: "Изи Иви", cost: 99, period: "month", renew: nextCharge(1) });
+else ivi.renew = nextCharge(1);
+function shiftMonth(iso, delta) {
+  const [y, mo, d] = iso.split("-").map(Number);
+  const dt = new Date(y, mo - 1 + delta, 1);
+  const last = new Date(dt.getFullYear(), dt.getMonth() + 1, 0).getDate();
+  const day = Math.min(d, last);
+  const p = n => String(n).padStart(2, "0");
+  return dt.getFullYear() + "-" + p(dt.getMonth() + 1) + "-" + p(day);
+}
+ivi.paid = shiftMonth(ivi.renew, -1);
+ivi.recur = true;
+db.subs.forEach(s => {
+  if (!s.paid && s.renew) s.paid = shiftMonth(s.renew, s.period === "year" ? -12 : -1);
+});
+const grok = db.subs.find(s => s.id === "grok");
+if (!grok) db.subs.push({ id: "grok", name: "Cursor, тариф на месяц", cost: 1727, period: "month", renew: "2026-11-29", once: true, paid: "2026-10-29" });
+else { grok.name = "Cursor, тариф на месяц"; grok.cost = 1727; grok.renew = "2026-11-29"; grok.once = true; grok.paid = "2026-10-29"; }
+db.expenses = db.expenses.filter(e => e.id !== "grok-topup");
+const topup = db.subs.find(s => s.id === "grok-topup");
+if (!topup) db.subs.push({ id: "grok-topup", name: "Cursor, пополнение счёта", cost: 2045, period: "month", renew: "2026-11-29", once: true, paid: "2026-10-29" });
+else { topup.name = "Cursor, пополнение счёта"; topup.cost = 2045; topup.renew = "2026-11-29"; topup.once = true; topup.paid = "2026-10-29"; }
+const food = db.expenses.find(e => e.id === "food-2026-11");
+if (!food) db.expenses.push({ id: "food-2026-11", category: "Продукты", amount: 2230, date: "2026-11-04", note: "Продукты за ноябрь" });
+else food.date = "2026-11-04";
+[
+  { id: "ipad-2026-11-10", category: "Рассрочка", amount: 2995, date: "2026-11-10", note: "Рассрочка за iPad" },
+  { id: "sber-2026-11-10", category: "Рассрочка", amount: 3850, date: "2026-11-10", note: "Обязательный платёж в Сбере" },
+  { id: "rostelekom-2026-11-10", category: "Ростелеком", amount: 650, date: "2026-11-10", note: "Ростелеком" },
+  { id: "beeline-2026-11-10", category: "Связь", amount: 500, date: "2026-11-10", note: "Билайн, сотовая связь" },
+  { id: "lottery-2026-11-10", category: "Лотерея", amount: 450, date: "2026-11-10", note: "3 билета на день рождения Жилищной лотереи" }
+].forEach(item => {
+  const e = db.expenses.find(x => x.id === item.id);
+  if (!e) db.expenses.push(item);
+  else { e.category = item.category; e.amount = item.amount; e.date = item.date; e.note = item.note; }
+});
+const ya = db.subs.find(s => s.id === "yandex360");
+const yaNext = nextCharge(13);
+if (!ya) db.subs.push({ id: "yandex360", name: "Яндекс 360", cost: 319, period: "month", paid: "2026-11-13", renew: yaNext, recur: true, start: "2026-11-13" });
+else { ya.name = "Яндекс 360"; ya.cost = 319; ya.period = "month"; ya.paid = "2026-11-13"; ya.renew = yaNext; ya.recur = true; ya.start = "2026-11-13"; }
+save();
+function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
+
+function daysLeft(date) {
+  const a = new Date(date + "T00:00:00");
+  const b = new Date(today() + "T00:00:00");
+  return Math.round((a - b) / 86400000);
+}
+function chargeDate(s, m) {
+  if (s.recur) {
+    const day = ((s.paid || s.renew || "2000-01-01").slice(8, 10) || "01");
+    return m + "-" + day;
+  }
+  return s.paid || (m + "-01");
+}
+function chargedIn(s, m) {
+  if (s.recur) return !s.start || m >= s.start.slice(0, 7);
+  return (s.paid || "").slice(0, 7) === m;
+}
+function activeIn(s, m) {
+  if (s.recur) return !s.start || m >= s.start.slice(0, 7);
+  const from = (s.paid || "0000-00").slice(0, 7);
+  const to = (s.renew || from).slice(0, 7);
+  return from <= m && m <= to;
+}
+function endedIn(s, m) { return !s.recur && (s.renew || "").slice(0, 7) === m; }
+
+function render() {
+  const m = monthEl.value;
+  const subMonth = db.subs.reduce((s, x) => s + (chargedIn(x, m) ? x.cost : 0), 0);
+  const rent = db.rent.find(x => x.month === m);
+  const exps = db.expenses.filter(x => x.date.startsWith(m));
+  const expSum = exps.reduce((s, x) => s + x.amount, 0);
+  const rentSum = rent ? rent.amount : 0;
+  document.getElementById("kpis").innerHTML = [
+    ["Списания подписок", subMonth, false],
+    ["Квартплата", rentSum, false],
+    ["Расходы", expSum, false],
+    ["Итого за месяц", subMonth + rentSum + expSum, true]
+  ].map(([l, n, a]) => `<article class="kpi${a ? " accent" : ""}"><div class="lbl">${l}</div><div class="num">${rub(n)}</div></article>`).join("");
+  const charged = db.subs.filter(s => chargedIn(s, m));
+  const rows = [
+    ...charged.map(s => ({ date: chargeDate(s, m), html: `<div class="item"><div><div class="name">${esc(s.name)}</div><div class="meta">Подписка · ${chargeDate(s, m).split("-").reverse().join(".")}</div></div><div class="num">${rub(s.cost)}</div></div>` })),
+    ...(rent ? [{ date: m + "-01", html: `<div class="item"><div><div class="name">Квартплата</div><div class="meta">${esc(rent.note || m)}</div></div><div class="num">${rub(rent.amount)}</div></div>` }] : []),
+    ...exps.map(x => ({ date: x.date, html: `<div class="item"><div><div class="name">${esc(x.note || x.category)}</div><div class="meta">${x.date.split("-").reverse().join(".")} · ${esc(x.category)}</div></div><div class="num">${rub(x.amount)}</div></div>` }))
+  ].sort((a, b) => a.date.localeCompare(b.date) || a.html.localeCompare(b.html));
+  const lines = rows.map(x => x.html);
+  document.getElementById("break-body").innerHTML = (lines.join("") || `<div class="empty">В этом месяце списаний нет.</div>`) + `<div class="item"><div class="name">Итого</div><div class="num">${rub(subMonth + rentSum + expSum)}</div></div><p class="meta">В карточке «Списания подписок» только оплаты этого месяца. Цены в списке активных могут быть больше: там виден и тариф, который оплачен в другом месяце.</p>`;
+
+  const subRow = s => {
+    const d = daysLeft(s.renew);
+    const pill = s.once && d < 0 ? `<span class="pill bad">закончилась ${s.renew.split("-").reverse().join(".")}</span>` : d < 0 ? `<span class="pill bad">срок вышел</span>` : s.once ? `<span class="pill warn">до ${s.renew.split("-").reverse().join(".")}</span>` : d <= 14 ? `<span class="pill warn">через ${d} дн.</span>` : `<span class="pill">до ${s.renew.split("-").reverse().join(".")}</span>`;
+    const fmt = d => d.split("-").reverse().join(".");
+    const bought = s.paid ? `куплена ${fmt(s.paid)}` : "дата покупки не указана";
+    const until = s.renew ? `действует до ${fmt(s.renew)}` : "срок не указан";
+    const hold = s.hold && !chargedIn(s, m) ? " · в этом месяце ещё не решили оплачивать" : "";
+    const schedule = s.recur ? `ежемесячно · следующее списание ${fmt(s.renew || s.paid)}` : `${bought} · ${until}${hold} · ${s.once ? "один раз" : (s.period === "year" ? "в год" : "в месяц")}`;
+    const sum = rub(s.cost);
+    return `<div class="item"><div><div class="name">${esc(s.name)}</div><div class="meta">${schedule} · ${pill}</div></div><div class="num">${sum}</div><button class="danger" data-del-sub="${s.id}">удалить</button></div>`;
+  };
+  const active = db.subs.filter(s => activeIn(s, m)).sort((a, b) => a.renew.localeCompare(b.renew));
+  const ended = db.subs.filter(s => endedIn(s, m)).sort((a, b) => a.renew.localeCompare(b.renew));
+  document.getElementById("sub-list").innerHTML = `<h2>Активные</h2>` + (active.length ? active.map(subRow).join("") : `<div class="empty">В этом месяце активных нет.</div>`) + `<h2 style="margin-top:18px">Заканчиваются в этом месяце</h2>` + (ended.length ? ended.map(subRow).join("") : `<div class="empty">В этом месяце ни одна не заканчивается.</div>`);
+
+  const rents = [...db.rent].sort((a, b) => b.month.localeCompare(a.month));
+  document.getElementById("rent-list").innerHTML = `<h2>По месяцам</h2>` + (rents.length ? rents.map(r => `<div class="item"><div><div class="name">${r.month}</div><div class="meta">${esc(r.note || "Квартплата")}</div></div><div class="num">${rub(r.amount)}</div><button class="danger" data-del-rent="${r.id}">удалить</button></div>`).join("") : `<div class="empty">За выбранный месяц ещё не записана.</div>`);
+  if (rent) {
+    const f = document.getElementById("rent-form");
+    f.amount.value = rent.amount;
+    f.note.value = rent.note || "";
+  }
+
+  const byCat = {};
+  exps.forEach(x => { byCat[x.category] = (byCat[x.category] || 0) + x.amount; });
+  const max = Math.max(1, ...Object.values(byCat));
+  const catRows = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  document.getElementById("bars").innerHTML = `<h2>По категориям · ${m}</h2>` + (catRows.length ? `<div class="bars">${catRows.map(([c, n]) => `<div class="bar-row"><div>${esc(c)}</div><div class="track"><div class="fill" style="width:${Math.round(n / max * 100)}%"></div></div><div>${rub(n)}</div></div>`).join("")}</div>` : `<div class="empty">В этом месяце расходов нет.</div>`);
+  const paid = db.payments.reduce((s, x) => s + x.amount, 0);
+  const pays = [...db.payments].sort((a, b) => b.date.localeCompare(a.date));
+  document.getElementById("debt-list").innerHTML = `<h2>Переводы маме</h2><div class="num">${rub(paid)}</div>` + (pays.length ? pays.map(p => `<div class="item"><div><div class="name">${p.date.split("-").reverse().join(".")}</div><div class="meta">Ремонт квартиры</div></div><div class="num">${rub(p.amount)}</div><button class="danger" data-del-pay="${p.id}">удалить</button></div>`).join("") : `<div class="empty">Переводов пока нет.</div>`);
+
+  document.getElementById("exp-list").innerHTML = `<h2>Список</h2>` + (exps.length ? [...exps].sort((a, b) => b.date.localeCompare(a.date)).map(x => `<div class="item"><div><div class="name">${esc(x.note || x.category)}</div><div class="meta">${x.date.split("-").reverse().join(".")} · ${esc(x.category)}</div></div><div class="num">${rub(x.amount)}</div><button class="danger" data-del-exp="${x.id}">удалить</button></div>`).join("") : `<div class="empty">Записей нет.</div>`);
+
+  const notes = db.notes.filter(x => x.date.startsWith(m)).sort((a, b) => b.date.localeCompare(a.date));
+  document.getElementById("note-list").innerHTML = `<h2>Заметки · ${m}</h2>` + (notes.length ? notes.map(n => `<div class="item" style="display:block"><div class="name">${esc(n.text)}</div><div class="meta">${n.date.split("-").reverse().join(".")} · ${esc(n.category || "Другое")}</div><div class="photos" data-photos="${n.photoIds.join(",")}"></div><button class="danger" data-del-note="${n.id}">удалить</button></div>`).join("") : `<div class="empty">В этом месяце заметок нет.</div>`);
+  document.querySelectorAll("[data-photos]").forEach(async box => {
+    const ids = box.dataset.photos.split(",").filter(Boolean);
+    for (const id of ids) {
+      let url = photoUrls.get(id);
+      if (!url) {
+        const blob = await getPhoto(id);
+        if (!blob) continue;
+        url = URL.createObjectURL(blob);
+        photoUrls.set(id, url);
+      }
+      const img = document.createElement("img");
+      img.src = url;
+      box.appendChild(img);
+    }
+  });
+}
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+document.getElementById("cat").innerHTML = CATS.map(c => `<option>${c}</option>`).join("");
+document.getElementById("note-cat").innerHTML = CATS.map(c => `<option>${c}</option>`).join("");
+const noteText = document.querySelector("#note-form [name=text]");
+noteText.addEventListener("input", () => { document.getElementById("note-cat").value = guessCat(noteText.value); });
+document.getElementById("mic").onclick = () => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert("Надиктовать можно в Chrome: разрешите микрофон."); return; }
+  const rec = new SR();
+  rec.lang = "ru-RU";
+  rec.onresult = (ev) => {
+    const said = ev.results[0][0].transcript;
+    noteText.value = (noteText.value ? noteText.value + " " : "") + said;
+    document.getElementById("note-cat").value = guessCat(noteText.value);
+  };
+  rec.start();
+};
+document.getElementById("exp-form").date.value = today();
+document.querySelector("#note-form [name=date]").value = today();
+document.querySelector("#debt-form [name=date]").value = today();
+
+document.querySelectorAll(".tab").forEach(btn => btn.onclick = () => {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t === btn));
+  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("on", p.id === btn.dataset.tab));
+});
+monthEl.onchange = render;
+
+document.getElementById("sub-form").onsubmit = e => {
+  e.preventDefault();
+  const f = e.target;
+  db.subs.push({ id: uid(), name: f.name.value.trim(), cost: +f.cost.value, period: f.period.value, paid: f.paid.value, renew: f.renew.value });
+  f.reset(); save(); render();
+};
+document.getElementById("rent-form").onsubmit = e => {
+  e.preventDefault();
+  const f = e.target;
+  const m = monthEl.value;
+  const prev = db.rent.find(x => x.month === m);
+  if (prev) { prev.amount = +f.amount.value; prev.note = f.note.value.trim(); }
+  else db.rent.push({ id: uid(), month: m, amount: +f.amount.value, note: f.note.value.trim() });
+  save(); render();
+};
+document.getElementById("note-form").onsubmit = async e => {
+  e.preventDefault();
+  const f = e.target;
+  const photoIds = [];
+  for (const file of f.photos.files) {
+    const id = uid();
+    await putPhoto(id, file);
+    photoIds.push(id);
+  }
+  const text = f.text.value.trim();
+  const category = f.category.value || guessCat(text);
+  db.notes.push({ id: uid(), text, date: f.date.value, photoIds, category });
+  const money = text.replace(/\s/g, "").match(/(\d+(?:[.,]\d+)?)/);
+  if (money) db.expenses.push({ id: uid(), category, amount: parseFloat(money[1].replace(",", ".")), date: f.date.value, note: text });
+  f.text.value = "";
+  f.photos.value = "";
+  save(); render();
+};
+document.getElementById("debt-form").onsubmit = e => {
+  e.preventDefault();
+  const f = e.target;
+  db.payments.push({ id: uid(), date: f.date.value, amount: +f.amount.value });
+  f.amount.value = "";
+  save(); render();
+};
+document.getElementById("exp-form").onsubmit = e => {
+  e.preventDefault();
+  const f = e.target;
+  db.expenses.push({ id: uid(), category: f.category.value, amount: +f.amount.value, date: f.date.value, note: f.note.value.trim() });
+  f.note.value = ""; f.amount.value = "";
+  save(); render();
+};
+document.body.onclick = e => {
+  const t = e.target;
+  if (t.dataset.delSub) db.subs = db.subs.filter(x => x.id !== t.dataset.delSub);
+  else if (t.dataset.delRent) db.rent = db.rent.filter(x => x.id !== t.dataset.delRent);
+  else if (t.dataset.delExp) db.expenses = db.expenses.filter(x => x.id !== t.dataset.delExp);
+  else if (t.dataset.delPay) db.payments = db.payments.filter(x => x.id !== t.dataset.delPay);
+  else if (t.dataset.delNote) {
+    const note = db.notes.find(x => x.id === t.dataset.delNote);
+    if (note) note.photoIds.forEach(dropPhoto);
+    db.notes = db.notes.filter(x => x.id !== t.dataset.delNote);
+  }
+  else return;
+  save(); render();
+};
+document.getElementById("export").onclick = () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(db, null, 2)], { type: "application/json" }));
+  a.download = "moi-rashody.json";
+  a.click();
+};
+document.getElementById("import").onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const data = JSON.parse(reader.result);
+    if (!data.subs || !data.expenses) return;
+    db = data; save(); render();
+  };
+  reader.readAsText(file);
+};
+render();
+</script>
+</body>
+</html>
