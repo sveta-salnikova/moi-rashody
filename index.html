@@ -361,12 +361,19 @@ let db = load();
 const monthEl = document.getElementById("month");
 monthEl.value = monthNow();
 
+const BACKUP = {"subs":[{"id":"magnific","name":"Magnific Premium+","cost":4732,"period":"month","renew":"2026-11-15","paid":"2026-10-15","hold":true},{"id":"ivi","name":"Изи Иви","cost":99,"period":"month","renew":"2026-12-01","paid":"2026-11-01","recur":true},{"id":"grok","name":"Cursor, тариф на месяц","cost":1727,"period":"month","renew":"2026-11-29","once":true,"paid":"2026-10-29"},{"id":"li9zfax","name":"Syntx","cost":1690,"period":"month","renew":"2026-12-08","paid":"2026-11-08"},{"id":"uf6ixqx","name":"Devin Desktop","cost":2367,"period":"month","renew":"2026-12-09","paid":"2026-11-09"},{"id":"edvpoh2","name":"ВН код","cost":4710,"period":"month","renew":"2026-12-03","paid":"2026-11-03"},{"id":"grok-topup","name":"Cursor, пополнение счёта","cost":2045,"period":"month","renew":"2026-11-29","once":true,"paid":"2026-10-29"}],"rent":[],"expenses":[{"id":"food-2026-11","category":"Продукты","amount":2230,"date":"2026-11-04","note":"Продукты за ноябрь"},{"id":"k41pl67","category":"Продукты","amount":855,"date":"2026-11-08","note":""},{"id":"0dj1u6d","category":"Продукты","amount":2531,"date":"2026-11-09","note":""},{"id":"ipad-2026-11-10","category":"Рассрочка","amount":2995,"date":"2026-11-10","note":"Рассрочка за iPad"},{"id":"sber-2026-11-10","category":"Рассрочка","amount":3850,"date":"2026-11-10","note":"Обязательный платёж в Сбере"},{"id":"rostelekom-2026-11-10","category":"Ростелеком","amount":650,"date":"2026-11-10","note":"Ростелеком"},{"id":"beeline-2026-11-10","category":"Связь","amount":500,"date":"2026-11-10","note":"Билайн, сотовая связь"},{"id":"g9glnp6","category":"Косметика","amount":1910,"date":"2026-11-11","note":"Erborion СС крем"}],"notes":[],"payments":[]};
 function load() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(KEY));
-    if (raw && raw.subs) return raw;
-  } catch (e) {}
-  return { subs: [], rent: [], expenses: [], notes: [] };
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  if (!raw || !raw.subs) return JSON.parse(JSON.stringify(BACKUP));
+  ["subs", "rent", "expenses", "notes", "payments"].forEach(key => {
+    raw[key] = raw[key] || [];
+    const have = new Set(raw[key].map(item => item.id));
+    (BACKUP[key] || []).forEach(item => {
+      if (!have.has(item.id)) raw[key].push(item);
+    });
+  });
+  return raw;
 }
 if (!db.notes) db.notes = [];
 if (!db.payments) db.payments = [];
