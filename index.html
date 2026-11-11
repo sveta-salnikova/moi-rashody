@@ -357,7 +357,6 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 const today = () => new Date().toISOString().slice(0, 10);
 const monthNow = () => today().slice(0, 7);
 
-let db = load();
 const monthEl = document.getElementById("month");
 monthEl.value = monthNow();
 
@@ -375,6 +374,7 @@ function load() {
   });
   return raw;
 }
+let db = load();
 if (!db.notes) db.notes = [];
 if (!db.payments) db.payments = [];
 const mag = db.subs.find(s => s.id === "magnific");
