@@ -212,10 +212,11 @@
   <section class="panel" id="rent">
     <div class="grid">
       <form class="card" id="rent-form">
-        <h2>Квартплата за месяц</h2>
+        <h2>Новый платёж за месяц</h2>
+        <div class="row"><input name="name" required placeholder="За что, например Квартплата, свет, вода"></div>
         <div class="row"><input name="amount" required type="number" min="0" step="0.01" placeholder="Сумма, ₽"></div>
-        <div class="row"><input name="note" placeholder="Комментарий, например ЖКХ + интернет"></div>
-        <button class="primary" type="submit">Сохранить за выбранный месяц</button>
+        <div class="row"><input name="note" placeholder="Комментарий (необязательно)"></div>
+        <button class="primary" type="submit">Добавить за выбранный месяц</button>
       </form>
       <div class="card" id="rent-list"></div>
     </div>
@@ -458,10 +459,10 @@ function endedIn(s, m) { return !s.recur && (s.renew || "").slice(0, 7) === m; }
 function render() {
   const m = monthEl.value;
   const subMonth = db.subs.reduce((s, x) => s + (chargedIn(x, m) ? x.cost : 0), 0);
-  const rent = db.rent.find(x => x.month === m);
+  const rentsM = db.rent.filter(x => x.month === m);
   const exps = db.expenses.filter(x => x.date.startsWith(m));
   const expSum = exps.reduce((s, x) => s + x.amount, 0);
-  const rentSum = rent ? rent.amount : 0;
+  const rentSum = rentsM.reduce((s, x) => s + x.amount, 0);
   document.getElementById("kpis").innerHTML = [
     ["Списания подписок", subMonth, false],
     ["Квартплата", rentSum, false],
@@ -471,7 +472,7 @@ function render() {
   const charged = db.subs.filter(s => chargedIn(s, m));
   const rows = [
     ...charged.map(s => ({ date: chargeDate(s, m), html: `<div class="item"><div><div class="name">${esc(s.name)}</div><div class="meta">Подписка · ${chargeDate(s, m).split("-").reverse().join(".")}</div></div><div class="num">${rub(s.cost)}</div></div>` })),
-    ...(rent ? [{ date: m + "-01", html: `<div class="item"><div><div class="name">Квартплата</div><div class="meta">${esc(rent.note || m)}</div></div><div class="num">${rub(rent.amount)}</div></div>` }] : []),
+    ...rentsM.map(r => ({ date: m + "-01", html: `<div class="item"><div><div class="name">${esc(r.name || "Квартплата")}</div><div class="meta">${esc(r.note || "Квартплата")}</div></div><div class="num">${rub(r.amount)}</div></div>` })),
     ...exps.map(x => ({ date: x.date, html: `<div class="item"><div><div class="name">${esc(x.note || x.category)}</div><div class="meta">${x.date.split("-").reverse().join(".")} · ${esc(x.category)}</div></div><div class="num">${rub(x.amount)}</div></div>` }))
   ].sort((a, b) => a.date.localeCompare(b.date) || a.html.localeCompare(b.html));
   const lines = rows.map(x => x.html);
@@ -493,12 +494,7 @@ function render() {
   document.getElementById("sub-list").innerHTML = `<h2>Активные</h2>` + (active.length ? active.map(subRow).join("") : `<div class="empty">В этом месяце активных нет.</div>`) + `<h2 style="margin-top:18px">Заканчиваются в этом месяце</h2>` + (ended.length ? ended.map(subRow).join("") : `<div class="empty">В этом месяце ни одна не заканчивается.</div>`);
 
   const rents = [...db.rent].sort((a, b) => b.month.localeCompare(a.month));
-  document.getElementById("rent-list").innerHTML = `<h2>По месяцам</h2>` + (rents.length ? rents.map(r => `<div class="item"><div><div class="name">${r.month}</div><div class="meta">${esc(r.note || "Квартплата")}</div></div><div class="num">${rub(r.amount)}</div><button class="danger" data-del-rent="${r.id}">удалить</button></div>`).join("") : `<div class="empty">За выбранный месяц ещё не записана.</div>`);
-  if (rent) {
-    const f = document.getElementById("rent-form");
-    f.amount.value = rent.amount;
-    f.note.value = rent.note || "";
-  }
+  document.getElementById("rent-list").innerHTML = `<h2>По месяцам</h2>` + (rents.length ? rents.map(r => `<div class="item"><div><div class="name">${esc(r.name || "Квартплата")}</div><div class="meta">${r.month}${r.note ? " · " + esc(r.note) : ""}</div></div><div class="num">${rub(r.amount)}</div><button class="danger" data-del-rent="${r.id}">удалить</button></div>`).join("") : `<div class="empty">Записей пока нет.</div>`);
 
   const byCat = {};
   exps.forEach(x => { byCat[x.category] = (byCat[x.category] || 0) + x.amount; });
@@ -568,9 +564,8 @@ document.getElementById("rent-form").onsubmit = e => {
   e.preventDefault();
   const f = e.target;
   const m = monthEl.value;
-  const prev = db.rent.find(x => x.month === m);
-  if (prev) { prev.amount = +f.amount.value; prev.note = f.note.value.trim(); }
-  else db.rent.push({ id: uid(), month: m, amount: +f.amount.value, note: f.note.value.trim() });
+  db.rent.push({ id: uid(), month: m, name: (f.name.value || "").trim() || "Квартплата", amount: +f.amount.value, note: f.note.value.trim() });
+  f.name.value = ""; f.amount.value = ""; f.note.value = "";
   save(); render();
 };
 document.getElementById("note-form").onsubmit = async e => {
